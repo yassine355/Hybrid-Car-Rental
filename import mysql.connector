@@ -1,0 +1,94 @@
+import tkinter as tk
+import mysql.connector
+
+# create database and table
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password="6711",
+  database="Voitures"
+)
+
+mycursor = mydb.cursor()
+mycursor.execute("CREATE TABLE IF NOT EXISTS user (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255), password VARCHAR(255))")
+
+# create main window
+root = tk.Tk()
+root.title("Login Form")
+root.geometry("400x200")
+
+# create labels
+tk.Label(root, text="Username: ").grid(row=0, column=0)
+tk.Label(root, text="Password: ").grid(row=1, column=0)
+
+# create entries
+username_entry = tk.Entry(root)
+password_entry = tk.Entry(root, show="*")
+
+username_entry.grid(row=0, column=1)
+password_entry.grid(row=1, column=1)
+
+# create signup form
+def signup_form():
+    # create signup window
+    signup_window = tk.Toplevel(root)
+    signup_window.title("Signup Form")
+    signup_window.geometry("400x200")
+
+    # create labels
+    tk.Label(signup_window, text="Username: ").grid(row=0, column=0)
+    tk.Label(signup_window, text="Password: ").grid(row=1, column=0)
+    tk.Label(signup_window, text="Email: ").grid(row=2, column=0)
+
+    # create entries
+    username_entry = tk.Entry(signup_window)
+    password_entry = tk.Entry(signup_window, show="*")
+    email_entry = tk.Entry(signup_window)
+
+    username_entry.grid(row=0, column=1)
+    password_entry.grid(row=1, column=1)
+    email_entry.grid(row=2, column=1)
+
+    # define submit function
+    def submit_form():
+        username = username_entry.get()
+        password = password_entry.get()
+        email = email_entry.get()
+
+        # insert data into table
+        sql = "INSERT INTO user (username, password, email) VALUES (%s, %s, %s)"
+        val = (username, password, email)
+        mycursor.execute(sql, val)
+        mydb.commit()
+
+        # show success message
+        tk.Label(signup_window, text="Signup successful!").grid(row=3, column=1)
+
+    # create submit button
+    tk.Button(signup_window, text="Submit", command=submit_form).grid(row=3, column=0)
+
+# create login function
+def login():
+    username = username_entry.get()
+    password = password_entry.get()
+
+    # check if user exists in database
+    sql = "SELECT * FROM user WHERE username = %s AND password = %s"
+    val = (username, password)
+    mycursor.execute(sql, val)
+    user = mycursor.fetchone()
+
+    if user:
+        # create welcome message in main form
+        welcome_message = tk.Label(root, text=f"Welcome to our site, {username}!")
+        welcome_message.grid(row=2, columnspan=2)
+    else:
+        # show error message
+        error_message = tk.Label(root, text="Invalid username or password!")
+        error_message.grid(row=2, columnspan=2)
+
+# create login button and signup button
+tk.Button(root, text="Login", command=login).grid(row=3, column=0)
+tk.Button(root, text="Signup", command=signup_form).grid(row=3, column=1)
+
+root.mainloop()
